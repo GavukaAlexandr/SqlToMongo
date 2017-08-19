@@ -12,23 +12,20 @@ use DI\Annotation\Inject;
 use DI\ContainerBuilder;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @ContainerConfiguration('../../Config/DependenceInjectionConfig.php')
+ *
+ * Class MongoDbConnectionTest
+ * @package DataBase
+ */
 class MongoDbConnectionTest extends TestCase
 {
-    public function __construct($name = null, array $data = [], $dataName = '')
-    {
-        $containerBuilder = new ContainerBuilder();
-        $containerBuilder->useAnnotations(true);
-        $containerBuilder->useAutowiring(true);
-        $container = $containerBuilder->build();
-
-        $container->injectOn($this);
-
-        parent::__construct($name, $data, $dataName);
-    }
-
     public function setUp()
     {
         $containerBuilder = new ContainerBuilder();
+        $containerBuilder->addDefinitions(
+            __DIR__ .
+            '../../Config/DependenceInjectionConfig.php');
         $containerBuilder->useAnnotations(true);
         $containerBuilder->useAutowiring(true);
         $container = $containerBuilder->build();
@@ -55,15 +52,11 @@ class MongoDbConnectionTest extends TestCase
     }
 
     /**
-     * @Inject
-     * @param MongoDbConnection $mongoDbConnection
-     *
-     * @return MongoDbConnection
+     * @Inject()
+     * @param ConnectionInterface|MongoDbConnection $connection
      */
-    public function testMongoDbConnection(MongoDbConnection $mongoDbConnection)
+    public function testMongoDbConnection(ConnectionInterface $connection)
     {
-        $this->assertNotNull($mongoDbConnection);
-
-        return $mongoDbConnection;
+        $this->assertNotNull($connection);
     }
 }

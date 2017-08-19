@@ -9,7 +9,7 @@
 namespace DataBase;
 
 
-class DatabaseConfiguration implements IDataBaseConfiguration
+class DatabaseConfiguration implements DataBaseConfigurationInterface
 {
     /**
      * @var string
@@ -20,6 +20,8 @@ class DatabaseConfiguration implements IDataBaseConfiguration
      * @var int
      */
     private $port;
+
+    private $dbName;
 
     /**
      * @var string
@@ -34,6 +36,7 @@ class DatabaseConfiguration implements IDataBaseConfiguration
     public function __construct(
         string $host = null,
         string $port = null,
+        string $dbName = null,
         string $username = null,
         string $password = null)
     {
@@ -46,6 +49,7 @@ class DatabaseConfiguration implements IDataBaseConfiguration
             $this->port = $port;
             $this->username = $username;
             $this->password = $password;
+            $this->dbName = $dbName;
         } else {
             $this->loadConfig();
         }
@@ -60,6 +64,7 @@ class DatabaseConfiguration implements IDataBaseConfiguration
         $this->host = $config['config']['MongoDB']['uri'] .
             $config['config']['MongoDB']['host'];
         $this->port = ':' . $config['config']['MongoDB']['port'];
+        $this->dbName = $config['config']['MongoDB']['db_name'];
         $this->username = $config['config']['MongoDB']['user'];
         $this->password = $config['config']['MongoDB']['password'];
     }
@@ -82,5 +87,10 @@ class DatabaseConfiguration implements IDataBaseConfiguration
     public function getPassword(): string
     {
         return $this->password;
+    }
+
+    public function getDbName(): string
+    {
+        return $this->dbName;
     }
 }

@@ -8,26 +8,40 @@
 
 namespace DataBase;
 
+use DI\Annotation\Inject;
 use MongoDB\Client;
+use MongoDB\Driver\Manager;
 
-class MongoDbConnection
+class MongoDbConnection implements ConnectionInterface
 {
-    /** @var DatabaseConfiguration */
-    private $configuration;
-
     /** @var Client */
     private $connection;
 
-    public function __construct(DatabaseConfiguration $databaseConfiguration)
+    /** @var DatabaseConfiguration|DataBaseConfigurationInterface  */
+    private $config;
+
+    /**
+     * MongoDbConnection constructor.
+     * @param DatabaseConfiguration|DataBaseConfigurationInterface $databaseConfiguration
+     */
+    public function __construct(DataBaseConfigurationInterface $databaseConfiguration)
     {
-        $this->configuration = $databaseConfiguration;
+        $this->config = $databaseConfiguration;
+        $this->connection($databaseConfiguration);
+    }
+
+    /**
+     * @param DatabaseConfiguration|DataBaseConfigurationInterface $configuration
+     */
+    public function connection(DataBaseConfigurationInterface $configuration)
+    {
         /**
          * for connect with auth use:
          * "mongodb://myusername:myp%40ss%3Aw%25rd@example.com/mydatabase"
          * or set params in array $uriOptions
          * http://php.net/manual/en/mongodb-driver-manager.construct.php
          */
-        $this->connection = new Client($this->configuration->getHost() . $this->configuration->getPort());
+        $this->connection = new Client($configuration->getHost() . $configuration->getPort());
     }
 
     /**
@@ -41,10 +55,8 @@ class MongoDbConnection
     /**
      * @return DatabaseConfiguration
      */
-    public function getConfiguration(): DatabaseConfiguration
+    public function getConfig(): DatabaseConfiguration
     {
-        return $this->configuration;
+        return $this->config;
     }
-
-
 }

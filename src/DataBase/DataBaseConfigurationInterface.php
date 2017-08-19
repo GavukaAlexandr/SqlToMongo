@@ -9,7 +9,7 @@
 namespace DataBase;
 
 
-interface IDataBaseConfiguration
+interface DataBaseConfigurationInterface
 {
     public function loadConfig();
 }
