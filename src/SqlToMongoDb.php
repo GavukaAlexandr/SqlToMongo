@@ -15,7 +15,7 @@ class SqlToMongoDb
     private const LT = '$lt';
     private const LTE = '$lte';
 
-    private $conditions = [
+    public $conditions = [
         '=' => self::EQ,
         '<>' => self::NE,
         '>' => self::GT,
@@ -63,76 +63,41 @@ class SqlToMongoDb
     }
 
     /**
-     * SELECT firstName, age
-     * FROM User
-     * db.getCollection('User').find({}, {firstName: 1, age: 1})
+     * SELECT firstName, lastName, age FROM SqlToMongo WHERE age > 18 AND (firstName='Alexandr' OR firstName='Inna') ORDER BY age ASC, firstName DESC, lastName ASC SKIP 3 LIMIT 5
      *
-     * SELECT firstName, age
-     * FROM User
-     * WHERE age > 23
-     * db.getCollection('User').find({age: {$gt: ["20", "23"]} }, {firstName: 1, age: 1})
-     *
-     * а также можно применить:
-     * ORDER BY:
-     * find().sort( { name: 1 } )
-     *
-     * SKIP:
-     * find().skip( 5 )
-     *
-     * LIMIT:
-     * find().limit( 5 )
-     *
-     * SELECT firstName, lastName, age FROM SqlToMongo WHERE age > 18 ORDER BY age ASC SKIP myRecords LIMIT 5
-     * SELECT firstName, lastName, age FROM SqlToMongo WHERE age > 18 AND (firstName='Alexandr' OR firstName='Inna') ORDER BY age ASC SKIP 3 LIMIT 5
+     * @param array $parsedSql
+     * @return array
      */
     public function prepareMongoQuery(array $parsedSql)
     {
+        $filter = [];
+        $options = [];
+
         if (array_key_exists('SELECT', $parsedSql)) {
-            $documentFields = array_column($parsedSql['SELECT'], 'base_expr');
-
-            if (count($documentFields) !== 1 and $documentFields['0'] !== '*') {
-                $preparedDocumentFields = array_flip($documentFields);
-
-                array_walk($preparedDocumentFields,
-                    function (&$value) {
-                        $value = 1;
-                    });
-
-                $options['projections'] = $preparedDocumentFields;
-            }
+            $options['projection'] = $this->prepareSelect($parsedSql['SELECT']);
         }
 
         if (array_key_exists('FROM', $parsedSql)) {
             $collectionName = $parsedSql['FROM']['0']['table'];
+        } else {
+            $this->printError('statements "FROM" missing');
         }
 
-        if (array_key_exists('WHERE', $parsedSql)) { //todo {age: {$gt: ["20", "23"]} }
-            $filter = [];
-            $this->prepareWhere($parsedSql);
+        if (array_key_exists('WHERE', $parsedSql)) {
+            $filter = $this->prepareConditions($parsedSql['WHERE']);
         }
 
         if (array_key_exists('ORDER BY', $parsedSql)) {
-            $options1 = [
-                'projection' => [     /*1 = show field, 0 = hide field*/
-                    'firstName' => 1,
-                    'lastName' => 1,
-                    'age' => 1,
-                    'hobby.' => 1,
-                ],
-                'sort' => ['firstName' => -1],   /*ASC = 1, DESC = -1*/
-                'skip' => 10,
-                'limit' => 50,
-            ];
+            $options['sort'] = $this->prepareSort($parsedSql['ORDER']);
         }
         if (array_key_exists('SKIP', $parsedSql)) {
-
+            $options['skip'] = $parsedSql['SKIP']['1'];
         }
         if (array_key_exists('LIMIT', $parsedSql)) {
-
+            $options['limit'] = $parsedSql['LIMIT']['rowcount'];
         }
 
         $dbName = $this->connection->getConfig()->getDbName();
-        $collectionName = 'User';
 
         /** @var Client $connection */
         $collection = $this->connection
@@ -144,119 +109,276 @@ class SqlToMongoDb
         return $data;
     }
 
-    private function prepareWhere(array $parsedSql): array
+    /**
+     * @param array $orderBy
+     * @return array
+     * @internal param $parsedSql
+     */
+    private function prepareSort(array $orderBy): array
     {
+        //todo replace array_walk in array_map
+        $column = array_column($orderBy, 'base_expr');
+        $sortParams = array_column($orderBy, 'direction');
+        $sortColumn = array_combine($column, $sortParams);
+        array_walk($sortColumn,
+            function (&$value) {
+                if ($value === 'ASC') {
+                    $value = 1;
+                }
 
-        $filter = [];
-        $this->prepareConditions($parsedSql['WHERE'], $this->conditions, $filter);
+                if ($value === 'DESC') {
+                    $value
+                        = -1;
+                }
+            });
 
-        return $filter;
+        return $sortColumn;
+    }
+
+    /**
+     * @param array $select
+     * @return array
+     */
+    private function prepareSelect(array $select): array
+    {
+        //todo implement *, field, field.subfield, field.*
+        $documentFields = array_column($select, 'base_expr');
+
+        if ($documentFields['0'] === '*') {
+            return [];
+        } else {
+            $preparedDocumentFields = array_flip($documentFields);
+
+            array_walk($preparedDocumentFields,
+                function (&$value) {
+                    $value = 1;
+                });
+            return $preparedDocumentFields;
+        }
     }
 
     /**
      * Recursive handle conditions
      *
      * @param array $where
-     * @param array $conditions
      * @param array $filter
      * @param null $logicalOperator AND or OR
      * @return array
      */
-    private function prepareConditions(array $where, array $conditions, array &$filter, $logicalOperator = null): array
+    private function prepareConditions(
+        array $where,
+        array &$filter = [],
+        /*$logicalOperator = null,*/
+        $bracketExpression = false): array
     {
-        $filter1 = [
-            'lastName' => "Gavuka",
-            '$or' => [
-                ['age' => ['$gt' => 5]],
-                ['firstName' => ['$eq' => 'Alexandr']],
-            ]
-        ];
+        //todo rewrite without foreach
+//        /** field name */
+//        $fieldName = null;
+//
+//        /** EQ, NE, GT, GTE, LT, LTE */
+//        $operator = null;
+//
+//        /** field value */
+//        $fieldValue = null;
 
-        /** field name */
-        $fieldName = null;
+        //todo WHERE отделить первые 3 елемента, вызвать метод prepare() для составления условия
+        if ($where['0']['expr_type'] === 'colref' &&
+            $where['1']['expr_type'] === 'operator' &&
+            $where['2']['expr_type'] === 'const') {
 
-        /** EQ, NE, GT, GTE, LT, LTE */
-        $operator = null;
-
-        /** field value */
-        $fieldValue = null;
-
-        foreach ($where as $key => $item) {
-            /** Field */
-            if ($item['expr_type'] === 'colref') {
-                $fieldName = (string)$item['base_expr'];
+            if ($bracketExpression === true) {
+                $this->prepareOr($filter, $where);
+            } else {
+                $this->prepareWhereAnd($filter, $where);
             }
 
-            /** Operator */
-            if ($item['expr_type'] === 'operator') {
-                if ($item['base_expr'] === 'AND' || $item['base_expr'] === 'OR') {
-                    $logicalOperator = $item['base_expr'];
-                }
-
-                if (array_key_exists($item['base_expr'], $conditions)) {
-                    $operator = (string)$conditions[$item['base_expr']];
-                }
-            }
-
-            /** value */
-            if ($item['expr_type'] === 'const') {
-                $fieldValue = $item['base_expr'];
-            }
-
-            /** aggregation elements in filter[] */
-            if (!empty($fieldName) &&
-                !empty($operator) &&
-                !empty($fieldValue)) {
-
-                /** WHERE aggregation */
-                if ($logicalOperator === null) {
-                    $filter[$fieldName] = [$operator => $item['base_expr']];
-                }
-
-                /** OR aggregation */
-                if ($logicalOperator === 'OR') {
-                    $filter['$or'][] = [$fieldName => [$operator => $fieldValue]];
-                }
-
-                /** AND aggregation */
-                if ($logicalOperator === 'AND' &&
-                    $item['expr_type'] === 'const' &&
-                    empty($item['sub_tree'])) {
-
-                    $filter[$fieldName] = [$operator => $item['base_expr']];
-                }
-
-                list($fieldName, $operator, $fieldValue) = null;
-            }
-
-            /** AND + OR aggregation */
-            if ($logicalOperator === 'AND' &&
-                $item['expr_type'] === 'bracket_expression' &&
-                !empty($item['sub_tree']) &&
-                $item['sub_tree'][3]['base_expr'] === 'OR') {
-
-                $this->prepareConditions($item['sub_tree'], $conditions, $filter, $logicalOperator = 'OR');
-            }
         }
+
+        if (count($where) <= 0) {
+            return $filter;
+        }
+
+        //todo AND(-OR-) вызов самого себя передав sub_tree
+        if ($where['0']['base_expr'] === 'AND' && $where['1']['expr_type'] === 'bracket_expression') {
+
+            /** delete operator AND from array */
+            array_splice($where,0,1);
+
+            /** recursive call for sub_tree bracket_expression */
+            $this->prepareConditions($where['0']['sub_tree'], $filter, true);
+            $bracketExpression = false;
+
+            /** delete sub tree of element from array */
+            array_splice($where,0,1);
+        }
+
+        if (count($where) <= 0) {
+            return $filter;
+        }
+
+        if ($where['0']['base_expr'] === 'OR') {
+            array_splice($where, 0,1);
+            $this->prepareOr($filter, $where);
+        }
+
+        if (count($where) <= 0) {
+            return $filter;
+        }
+
+        if ($where['0']['base_expr'] === 'AND') {
+            array_splice($where, 0,1);
+            $this->prepareWhereAnd($filter, $where);
+        }
+
+        if (count($where) > 0){
+            $this->prepareConditions($where, $filter);
+        }
+
+//        foreach ($where as $key => $item) {
+//            /** Field and Value*/
+//            if ($item['expr_type'] === 'colref') {
+//                if ($fieldName !== null) {
+//                    if (is_numeric($item['base_expr'])) {
+//                        $fieldValue = (int)$item['base_expr'];
+//                    } else {
+//                        $fieldValue = (string)$item['base_expr'];
+//                    }
+//                } else {
+//                    $fieldName = $item['base_expr'];
+//                    continue;
+//
+//                }
+//            }
+//
+//            /** Operator */
+//            if ($item['expr_type'] === 'operator') {
+//                if ($item['base_expr'] === 'AND' || $item['base_expr'] === 'OR') {
+//                    $logicalOperator = $item['base_expr'];
+//                }
+//
+//                if (array_key_exists($item['base_expr'], $this->conditions)) {
+//                    $operator = $this->conditions[$item['base_expr']];
+//                }
+//
+//                continue;
+//            }
+//
+//            /** value */
+//            if ($item['expr_type'] === 'const') {
+//                if (is_numeric($item['base_expr'])) {
+//                    $fieldValue = (int)$item['base_expr'];
+//                } else {
+//                    $fieldValue = (string)$item['base_expr'];
+//                }
+//            }
+//
+//            /** aggregation elements in filter[] */
+//            if ($fieldName !== null &&
+//                $operator !== null &&
+//                $fieldValue !== null) {
+//
+//                /** WHERE aggregation */
+//                if ($logicalOperator === null) {
+//                    $filter[$fieldName] = [$operator => $fieldValue];
+//
+//                    list($fieldName, $operator, $fieldValue) = null;
+//                    continue;
+//                }
+//
+//                /** OR aggregation */
+//                if ($logicalOperator === 'OR') {
+//                    $filter['$or'][] = [$fieldName => [$operator => $fieldValue]];
+//                }
+//
+//                /** AND aggregation */
+//                if ($logicalOperator === 'AND' &&
+//                    $item['expr_type'] === 'const' &&
+//                    empty($item['sub_tree'])) {
+//
+//                    $filter[$fieldName] = [$operator => $fieldValue];
+//                }
+//
+//                list($fieldName, $operator, $fieldValue) = null;
+//            }
+//
+//            /** AND + OR aggregation */
+//            if ($logicalOperator === 'AND' &&
+//                $item['expr_type'] === 'bracket_expression' &&
+//                !empty($item['sub_tree']) &&
+//                $item['sub_tree'][3]['base_expr'] === 'OR') {
+//
+//                $this->prepareConditions($item['sub_tree'], $filter, $logicalOperator = 'OR');
+//            }
+//        }
 
         return $filter;
     }
 
-    public function view($data)
+    private function prepareWhereAnd(array &$filter, array &$where)
     {
-        //todo метод отображения данных
-        //todo вывести данные в виде таблицы
+        /** @var array $elements = conditionsElements */
+        $elements = $this->getConditionsElements($where);
+
+            $filter[$elements['column']] = [$elements['operator'] => $elements['value']];
     }
 
-    private
-    function printError()
+    private function prepareOr(array &$filter, array &$where)
     {
-        $this->cliMate->error('SQL is not correct, please enter the correct SQL');
+        /** @var array $elements = conditionsElements */
+        $elements = $this->getConditionsElements($where);
+
+            $filter['$or'][] = [
+                $elements['column'] => [
+                    $elements['operator'] => $elements['value']
+                ]
+            ];
+
+    }
+
+    /**
+     * get conditions operator
+     *
+     * @param string $operator
+     * @return mixed
+     */
+    public function getOperator(string $operator)
+    {
+        if (array_key_exists($operator, $this->conditions)) {
+            return $this->conditions[$operator];
+        } else {
+            $this->printError('Conditions operator' . "$operator" . 'not valid!');
+        }
+    }
+
+    public function getConditionsElements(array &$where): array
+    {
+        /** @var array $condEl = conditionsElements */
+        $condEl = array_splice($where, 0, 3);
+
+        $elements['column'] = $condEl['0']['base_expr'];
+        $elements['operator'] = $this->getOperator($condEl['1']['base_expr']);
+
+        if (is_numeric($condEl['2']['base_expr'])) {
+            $elements['value'] = (int) $condEl['2']['base_expr'];
+        } else {
+            $elements['value'] = (string) $condEl['2']['base_expr'];
+        }
+
+        return $elements;
+    }
+
+    private function printError(
+        string $message = 'SQL is not correct, please enter the correct SQL'): void
+    {
+        $this->cliMate->error($message);
         $this->run();
     }
 
-    public
-    function parseSql(string $sql): array
+    /**
+     * @param string $sql
+     * @return array
+     */
+    public function parseSql(string $sql): array
     {
         $this->parser->addCustomFunction('SKIP');
 
@@ -267,8 +389,10 @@ class SqlToMongoDb
         return $parsedSql;
     }
 
-    private
-    function getSql(): string
+    /**
+     * @return string
+     */
+    private function getSql(): string
     {
         for ($i = true; $i === true;) {
             $sql = readline('SQL to MongoDB > ');
@@ -278,5 +402,11 @@ class SqlToMongoDb
         }
 
         return $sql;
+    }
+
+    public function view($data)
+    {
+        //todo сделать интерфейс с методом для отображения данных
+        //todo вывести данные в виде таблицы
     }
 }
