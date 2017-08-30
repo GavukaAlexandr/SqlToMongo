@@ -12,4 +12,5 @@ $containerBuilder->useAutowiring(true);
 $container = $containerBuilder->build();
 
 $sqlToMongo = $container->get('SqlToMongoDb');
+$sqlToMongo->draw();
 $sqlToMongo->run();

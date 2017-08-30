@@ -8,9 +8,9 @@
 
 namespace DataBase;
 
-use DI\Annotation\Inject;
 use DI\ContainerBuilder;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 
 /**
  * @ContainerConfiguration('../../Config/DependenceInjectionConfig.php')
@@ -20,6 +20,9 @@ use PHPUnit\Framework\TestCase;
  */
 class MongoDbConnectionTest extends TestCase
 {
+    /**
+     * create container for PHP-DI and inject dependencies in method
+     */
     public function setUp()
     {
         $containerBuilder = new ContainerBuilder();
@@ -33,6 +36,19 @@ class MongoDbConnectionTest extends TestCase
         $container->injectOn($this);
 
         parent::setUp();
+    }
+
+    /**
+     * get private method
+     *
+     * @param $name
+     * @return \ReflectionMethod
+     */
+    protected static function getMethod($name) {
+        $class = new ReflectionClass('MyClass');
+        $method = $class->getMethod($name);
+        $method->setAccessible(true);
+        return $method;
     }
 
     public function testConfigFile()
@@ -51,12 +67,13 @@ class MongoDbConnectionTest extends TestCase
             "not specified PORT field in config.yml");
     }
 
-    /**
-     * @Inject()
-     * @param ConnectionInterface|MongoDbConnection $connection
-     */
-    public function testMongoDbConnection(ConnectionInterface $connection)
-    {
-        $this->assertNotNull($connection);
-    }
+//    /**
+//     * @Inject()
+//     * @param ConnectionInterface|MongoDbConnection $connection
+//     */
+//    public function testMongoDbConnection(ConnectionInterface $connection)
+//    {
+//        $this->assertNotNull($connection);
+//        echo $connection->getConfig()->getPort();
+//    }
 }

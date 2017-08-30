@@ -54,16 +54,108 @@ class SqlToMongoDb
         $this->cliMate = $cliMate;
     }
 
+    public function draw()
+    {
+        $this->cliMate->addArt(__DIR__ . '/../textImages');
+        $this->cliMate->clear();
+
+        $this->cliMate->magenta()->bold()->out('   Made by Alexandr Gavuka');
+        $this->cliMate->border('-');
+        $this->cliMate->green()->draw('sqltomongo');
+        $this->cliMate->border('-');
+    }
+
     public function run()
     {
         $sql = $this->getSql();
-        $parsedSql = $this->parseSql((string)$sql);
+        $parsedSql = $this->parseSql((string) $sql);
+        $this->uppercaseOperators($parsedSql);
 
-        $data = $this->prepareMongoQuery($parsedSql);
+        /** get prepared query for MongoDB */
+        $settings = $this->prepareMongoQuery($parsedSql);
+
+        /** execute query */
+        $dbName = $this->connection->getConfig()->getDbName();
+        $collectionName = $settings['collectionName'];
+
+        /** @var Client $connection */
+        $collection = $this->connection
+            ->getConnection()
+            ->$dbName
+            ->$collectionName;
+        $data = $collection->find($settings['filter'], $settings['options'])->toArray();
+
+        $this->arrayObjectsToArray($data);
+        $this->prepareArrayToPrint($data);
+        $this->cliMate->table($data);
+        $this->run();
     }
 
     /**
+     * Control for function arrayToString
+     *
+     * @param $data
+     */
+    private function prepareArrayToPrint(&$data)
+    {
+        foreach ($data as &$datum) {
+            if (is_array($datum)) {
+                foreach ($datum as &$item) {
+                    if (is_array($item)) {
+                        $item = $this->arrayToString($item);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Converting multidimensional data sets to a string for output in a table
+     *
+     * @param $data
+     * @return null|string
+     */
+    private function arrayToString($data)
+    {
+        $string = null;
+        foreach ($data as $key => &$datum) {
+            if (is_array($datum)) {
+                    $string .= $key . ':{ ' . $this->arrayToString($datum) . ' } ';
+            } else {
+                if ($datum === end($data)) {
+                    $string .= $key . ':' . $datum;
+                } else {
+                    $string .= $key . ':' . $datum . ', ';
+                }
+            }
+        }
+
+        return $string;
+    }
+
+    /**
+     * array of objects to array
+     *
+     * @param $data
+     */
+    private function arrayObjectsToArray(&$data)
+    {
+        foreach ($data as &$datum) {
+            if (is_object($datum)){
+                $datum = (array) $datum;
+            }
+            if (is_array($datum)) {
+                $this->arrayObjectsToArray($datum);
+            }
+        }
+    }
+
+    /**
+     * prepare SQL to array MongoDB query
+     *
+     * Example SQL statement
      * SELECT firstName, lastName, age FROM SqlToMongo WHERE age > 18 AND (firstName='Alexandr' OR firstName='Inna') ORDER BY age ASC, firstName DESC, lastName ASC SKIP 3 LIMIT 5
+     * SELECT * FROM User WHERE age>20 AND( gender=female or lastName=lastName58 )
      *
      * @param array $parsedSql
      * @return array
@@ -91,25 +183,49 @@ class SqlToMongoDb
             $options['sort'] = $this->prepareSort($parsedSql['ORDER']);
         }
         if (array_key_exists('SKIP', $parsedSql)) {
-            $options['skip'] = $parsedSql['SKIP']['1'];
+            $options['skip'] = (int) $parsedSql['SKIP']['1'];
         }
         if (array_key_exists('LIMIT', $parsedSql)) {
-            $options['limit'] = $parsedSql['LIMIT']['rowcount'];
+            $options['limit'] = (int) $parsedSql['LIMIT']['rowcount'];
         }
 
-        $dbName = $this->connection->getConfig()->getDbName();
-
-        /** @var Client $connection */
-        $collection = $this->connection
-            ->getConnection()
-            ->$dbName
-            ->$collectionName;
-        $data = $collection->find($filter, $options)->toArray();
+        $data['filter'] = $filter;
+        $data['options'] = $options;
+        $data['collectionName'] = $collectionName;
 
         return $data;
     }
 
     /**
+     * recursive uppercase operators in parsed SQL
+     *
+     * @param $parsedSql
+     */
+    private function uppercaseOperators(&$parsedSql)
+    {
+        foreach ($parsedSql as &$element) {
+            if (is_array($element)) {
+                if (array_key_exists('expr_type', $element)){
+                    if ($element['expr_type'] === 'operator'){
+                        $element['base_expr'] = strtoupper($element['base_expr']);
+                    }
+
+                    if ($element['sub_tree'] !== false) {
+                        $this->uppercaseOperators($element['sub_tree']);
+                    }
+                } else {
+                    if (is_array($element)){
+                        $this->uppercaseOperators($element);
+                    }
+                }
+            }
+
+        }
+    }
+
+    /**
+     * prepare sort(ORDER BY) statement
+     *
      * @param array $orderBy
      * @return array
      * @internal param $parsedSql
@@ -136,6 +252,8 @@ class SqlToMongoDb
     }
 
     /**
+     * prepare projection for MongoDB query
+     *
      * @param array $select
      * @return array
      */
@@ -158,33 +276,23 @@ class SqlToMongoDb
     }
 
     /**
-     * Recursive handle conditions
+     * Recursive prepare conditions WHERE, AND, OR, AND ( - OR - )
      *
      * @param array $where
      * @param array $filter
-     * @param null $logicalOperator AND or OR
+     * @param bool $bracketExpression
      * @return array
+     * @internal param null $logicalOperator AND or OR
      */
     private function prepareConditions(
         array $where,
         array &$filter = [],
-        /*$logicalOperator = null,*/
         $bracketExpression = false): array
     {
-        //todo rewrite without foreach
-//        /** field name */
-//        $fieldName = null;
-//
-//        /** EQ, NE, GT, GTE, LT, LTE */
-//        $operator = null;
-//
-//        /** field value */
-//        $fieldValue = null;
-
-        //todo WHERE отделить первые 3 елемента, вызвать метод prepare() для составления условия
         if ($where['0']['expr_type'] === 'colref' &&
             $where['1']['expr_type'] === 'operator' &&
-            $where['2']['expr_type'] === 'const') {
+            $where['2']['expr_type'] === 'const' ||
+            $where['2']['expr_type'] === 'colref') {
 
             if ($bracketExpression === true) {
                 $this->prepareOr($filter, $where);
@@ -198,7 +306,7 @@ class SqlToMongoDb
             return $filter;
         }
 
-        //todo AND(-OR-) вызов самого себя передав sub_tree
+        /** recursive handle bracket_expression AND( - OR - ) */
         if ($where['0']['base_expr'] === 'AND' && $where['1']['expr_type'] === 'bracket_expression') {
 
             /** delete operator AND from array */
@@ -216,6 +324,7 @@ class SqlToMongoDb
             return $filter;
         }
 
+        /** prepare OR */
         if ($where['0']['base_expr'] === 'OR') {
             array_splice($where, 0,1);
             $this->prepareOr($filter, $where);
@@ -225,95 +334,26 @@ class SqlToMongoDb
             return $filter;
         }
 
+        /** prepare AND */
         if ($where['0']['base_expr'] === 'AND') {
             array_splice($where, 0,1);
             $this->prepareWhereAnd($filter, $where);
         }
 
+        /** if array where not empty, prepareConditions() will be called again */
         if (count($where) > 0){
             $this->prepareConditions($where, $filter);
         }
 
-//        foreach ($where as $key => $item) {
-//            /** Field and Value*/
-//            if ($item['expr_type'] === 'colref') {
-//                if ($fieldName !== null) {
-//                    if (is_numeric($item['base_expr'])) {
-//                        $fieldValue = (int)$item['base_expr'];
-//                    } else {
-//                        $fieldValue = (string)$item['base_expr'];
-//                    }
-//                } else {
-//                    $fieldName = $item['base_expr'];
-//                    continue;
-//
-//                }
-//            }
-//
-//            /** Operator */
-//            if ($item['expr_type'] === 'operator') {
-//                if ($item['base_expr'] === 'AND' || $item['base_expr'] === 'OR') {
-//                    $logicalOperator = $item['base_expr'];
-//                }
-//
-//                if (array_key_exists($item['base_expr'], $this->conditions)) {
-//                    $operator = $this->conditions[$item['base_expr']];
-//                }
-//
-//                continue;
-//            }
-//
-//            /** value */
-//            if ($item['expr_type'] === 'const') {
-//                if (is_numeric($item['base_expr'])) {
-//                    $fieldValue = (int)$item['base_expr'];
-//                } else {
-//                    $fieldValue = (string)$item['base_expr'];
-//                }
-//            }
-//
-//            /** aggregation elements in filter[] */
-//            if ($fieldName !== null &&
-//                $operator !== null &&
-//                $fieldValue !== null) {
-//
-//                /** WHERE aggregation */
-//                if ($logicalOperator === null) {
-//                    $filter[$fieldName] = [$operator => $fieldValue];
-//
-//                    list($fieldName, $operator, $fieldValue) = null;
-//                    continue;
-//                }
-//
-//                /** OR aggregation */
-//                if ($logicalOperator === 'OR') {
-//                    $filter['$or'][] = [$fieldName => [$operator => $fieldValue]];
-//                }
-//
-//                /** AND aggregation */
-//                if ($logicalOperator === 'AND' &&
-//                    $item['expr_type'] === 'const' &&
-//                    empty($item['sub_tree'])) {
-//
-//                    $filter[$fieldName] = [$operator => $fieldValue];
-//                }
-//
-//                list($fieldName, $operator, $fieldValue) = null;
-//            }
-//
-//            /** AND + OR aggregation */
-//            if ($logicalOperator === 'AND' &&
-//                $item['expr_type'] === 'bracket_expression' &&
-//                !empty($item['sub_tree']) &&
-//                $item['sub_tree'][3]['base_expr'] === 'OR') {
-//
-//                $this->prepareConditions($item['sub_tree'], $filter, $logicalOperator = 'OR');
-//            }
-//        }
-
         return $filter;
     }
 
+    /**
+     * prepare WHERE and AND conditions
+     *
+     * @param array $filter
+     * @param array $where
+     */
     private function prepareWhereAnd(array &$filter, array &$where)
     {
         /** @var array $elements = conditionsElements */
@@ -322,6 +362,12 @@ class SqlToMongoDb
             $filter[$elements['column']] = [$elements['operator'] => $elements['value']];
     }
 
+    /**
+     * prepare OR conditions
+     *
+     * @param array $filter
+     * @param array $where
+     */
     private function prepareOr(array &$filter, array &$where)
     {
         /** @var array $elements = conditionsElements */
@@ -336,7 +382,29 @@ class SqlToMongoDb
     }
 
     /**
-     * get conditions operator
+     * prepare elements for conditions
+     *
+     * @param array $where
+     * @return array
+     */
+    public function getConditionsElements(array &$where): array
+    {
+        /** @var array $condEl = conditionsElements */
+        $condEl = array_splice($where, 0, 3);
+        $elements['column'] = $condEl['0']['base_expr'];
+        $elements['operator'] = $this->getOperator($condEl['1']['base_expr']);
+
+        if (is_numeric($condEl['2']['base_expr'])) {
+            $elements['value'] = (int) $condEl['2']['base_expr'];
+        } else {
+            $elements['value'] = (string) $condEl['2']['base_expr'];
+        }
+
+        return $elements;
+    }
+
+    /**
+     * getting and validation conditions operator
      *
      * @param string $operator
      * @return mixed
@@ -350,25 +418,12 @@ class SqlToMongoDb
         }
     }
 
-    public function getConditionsElements(array &$where): array
-    {
-        /** @var array $condEl = conditionsElements */
-        $condEl = array_splice($where, 0, 3);
-
-        $elements['column'] = $condEl['0']['base_expr'];
-        $elements['operator'] = $this->getOperator($condEl['1']['base_expr']);
-
-        if (is_numeric($condEl['2']['base_expr'])) {
-            $elements['value'] = (int) $condEl['2']['base_expr'];
-        } else {
-            $elements['value'] = (string) $condEl['2']['base_expr'];
-        }
-
-        return $elements;
-    }
-
-    private function printError(
-        string $message = 'SQL is not correct, please enter the correct SQL'): void
+    /**
+     * print error and write greeting for input in CLI
+     *
+     * @param string $message
+     */
+    private function printError(string $message = 'SQL is not correct, please enter the correct SQL'): void
     {
         $this->cliMate->error($message);
         $this->run();
@@ -390,23 +445,19 @@ class SqlToMongoDb
     }
 
     /**
+     * repeat greeting for input in CLI while the valid SQL hasn't input
+     *
      * @return string
      */
     private function getSql(): string
     {
         for ($i = true; $i === true;) {
-            $sql = readline('SQL to MongoDB > ');
+            $sql = readline('SQL to MongoDB >>> ');
             if (!empty($sql)) {
                 break;
             }
         }
 
         return $sql;
-    }
-
-    public function view($data)
-    {
-        //todo сделать интерфейс с методом для отображения данных
-        //todo вывести данные в виде таблицы
     }
 }
