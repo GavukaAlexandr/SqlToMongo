@@ -7,7 +7,7 @@ php:
   - '7.1'
 
 before_install:
-  - sudo apt-get install php7.1-pear
+  - sudo apt-get install php-pear
   - sudo apt-get install php7.1-dev
   - sudo apt-get install libyaml-dev
   - sudo pecl install yaml
