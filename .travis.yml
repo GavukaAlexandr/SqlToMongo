@@ -1,6 +1,6 @@
 language: php
 
-sudo: false
+sudo: true
 
 php:
   - '7.0'
@@ -10,5 +10,5 @@ php:
 before_install:
   - wget https://phar.phpunit.de/phpunit-6.3.phar
   - chmod +x phpunit-6.3.phar
-  - sudo mv phpunit-6.3.phar /usr/local/bin/phpunit
+  - mv phpunit-6.3.phar /usr/local/bin/phpunit
   - phpunit --version
