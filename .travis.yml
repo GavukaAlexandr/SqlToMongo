@@ -6,9 +6,4 @@ php:
   - '7.0'
   - '7.1'
 
-#script: phpunit --configuration phpunit.xml
-before_install:
-  - wget https://phar.phpunit.de/phpunit-6.3.phar
-  - chmod +x phpunit-6.3.phar
-  - sudo mv phpunit-6.3.phar /usr/local/bin/phpunit
-  - phpunit --version
+script: vendor/bin/phpunit
