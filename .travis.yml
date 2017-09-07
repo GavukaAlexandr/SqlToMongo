@@ -15,7 +15,7 @@ before_install:
   - sudo apt-get install libyaml-dev
   - pecl channel-update pecl.php.net
   - \n | sudo pecl install yaml
-  - cd /etc/php/
+  - cd /etc/php/7.1/cli/
   - ls
   - sudo echo "extension=yaml.so" >> ~/etc/php/7.1/cli/php.ini
   - You should add "extension=yaml.so" to php.ini
