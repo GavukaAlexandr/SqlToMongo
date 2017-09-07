@@ -10,7 +10,7 @@ before_install:
   - \n | sudo add-apt-repository ppa:ondrej/php
   - sudo apt-get update
   - sudo apt-get install php7.1
-  - sudo apt-get install php7.1-pear
+  - sudo apt-get install php-pear
   - sudo apt-get install php-dev
   - sudo apt-get install libyaml-dev
   - sudo pecl install yaml
