@@ -6,7 +6,16 @@ php:
   - '7.0'
   - '7.1'
 
-script: vendor/bin/phpunit
+before_install:
+  - sudo apt-get install php-pear libyaml-dev
+  - sudo pecl install yaml
+  - You should add "extension=yaml.so" to php.ini
+  - pecl install mongodb
+  - sudo apt-get install php-mongodb
 
 install:
   - composer install
+
+script: vendor/bin/phpunit
+
+
