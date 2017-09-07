@@ -10,5 +10,5 @@ php:
 before_install:
   - wget https://phar.phpunit.de/phpunit-6.3.phar
   - chmod +x phpunit-6.3.phar
-  - mv phpunit-6.3.phar /usr/local/bin/phpunit
+  - sudo mv phpunit-6.3.phar /usr/local/bin/phpunit
   - phpunit --version
