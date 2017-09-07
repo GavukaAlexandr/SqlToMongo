@@ -15,9 +15,10 @@ before_install:
   - sudo apt-get install libyaml-dev
   - pecl channel-update pecl.php.net
   - \n | sudo pecl install yaml
-  - cd /etc/php/7.1/cli/
+#  - cd /etc/php/7.1/cli/
+  - cd /home/travis/.phpenv/versions/7.1.8/
   - ls
-  - echo "extension=yaml.so" >> ~/.phpenv/versions/7.1/cli/php.ini
+  - echo "extension=yaml.so" >> ~/.phpenv/versions/7.1.8/cli/php.ini
   - pecl install mongodb
   - sudo apt-get install php-mongodb
 
