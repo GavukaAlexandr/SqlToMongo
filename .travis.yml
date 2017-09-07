@@ -17,7 +17,7 @@ before_install:
   - \n | sudo pecl install yaml
   - cd /etc/php/7.1/cli/
   - ls
-  - sudo echo "extension=yaml.so" >> ~/.phpenv/versions/7.1/cli/php.ini
+  - echo "extension=yaml.so" >> ~/.phpenv/versions/7.1/cli/php.ini
   - pecl install mongodb
   - sudo apt-get install php-mongodb
 
