@@ -15,7 +15,9 @@ before_install:
   - sudo apt-get install libyaml-dev
   - pecl channel-update pecl.php.net
   - \n | sudo pecl install yaml
-  - sudo echo "extension=yaml.so" >> /etc/php/7.1/cli/php.ini
+  - cd /etc/php/
+  - ll
+  - sudo echo "extension=yaml.so" >> ~/etc/php/7.1/cli/php.ini
   - You should add "extension=yaml.so" to php.ini
   - pecl install mongodb
   - sudo apt-get install php-mongodb
