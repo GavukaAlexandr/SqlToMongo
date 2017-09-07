@@ -9,15 +9,13 @@ php:
 before_install:
   - \n | sudo add-apt-repository ppa:ondrej/php
   - sudo apt-get update
-  - sudo apt-get install php7.1
-  - sudo apt-get install php-pear
-  - sudo apt-get install php-dev
+#  - sudo apt-get install php7.1
+#  - sudo apt-get install php-pear
+#  - sudo apt-get install php-dev
   - sudo apt-get install libyaml-dev
   - pecl channel-update pecl.php.net
   - \n | sudo pecl install yaml
-  - cd /etc/php/7.1/cli/
-  - ls
-  - sudo echo "extension=yaml.so" >> ~/etc/php/7.1/cli/php.ini
+  - sudo echo "extension=yaml.so" >> ~/.phpenv/versions/7.1/cli/php.ini
   - You should add "extension=yaml.so" to php.ini
   - pecl install mongodb
   - sudo apt-get install php-mongodb
