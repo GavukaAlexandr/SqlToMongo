@@ -3,15 +3,17 @@ language: php
 sudo: true
 
 php:
-  - '7.0'
+#  - '7.0'
   - '7.1'
 
 before_install:
-  - sudo apt-get install php-pear libyaml-dev
+  - sudo apt-get install php7.1-pear
+  - sudo apt-get install php7.1-dev
+  - sudo apt-get install libyaml-dev
   - sudo pecl install yaml
   - You should add "extension=yaml.so" to php.ini
   - pecl install mongodb
-  - sudo apt-get install php-mongodb
+  - sudo apt-get install php7.1-mongodb
 
 install:
   - composer install
