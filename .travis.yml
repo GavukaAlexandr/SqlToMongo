@@ -3,7 +3,7 @@ language: php
 sudo: required
 
 php:
-#  - '7.0'
+  - '7.0'
   - '7.1'
 
 before_install:
@@ -23,6 +23,4 @@ install:
   - composer install
 
 script:
-  - if [[ "$TRAVIS_PHP_VERSION" != '5.6' ]]; then vendor/bin/phpunit ; fi
-
-
+  - ./vendor/bin/phpunit
