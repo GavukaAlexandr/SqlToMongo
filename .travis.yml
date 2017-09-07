@@ -18,7 +18,7 @@ before_install:
 #  - cd /etc/php/7.1/cli/
   - cd /home/travis/.phpenv/versions/7.1.8/
   - ls
-  - echo "extension=yaml.so" >> ~/.phpenv/versions/7.1.8/cli/php.ini
+  - echo "extension=yaml.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
   - pecl install mongodb
   - sudo apt-get install php-mongodb
 
