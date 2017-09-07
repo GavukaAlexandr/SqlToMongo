@@ -1,7 +1,9 @@
 language: php
 
+sudo: false
+
 php:
   - '7.0'
   - '7.1'
 
-sudo: false
+script: phpunit --configuration phpunit.xml
