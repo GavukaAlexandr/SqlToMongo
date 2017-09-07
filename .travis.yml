@@ -13,7 +13,8 @@ before_install:
   - sudo apt-get install php-pear
   - sudo apt-get install php-dev
   - sudo apt-get install libyaml-dev
-  - sudo pecl install yaml
+  - pecl channel-update pecl.php.net
+  - \n | sudo pecl install yaml
   - You should add "extension=yaml.so" to php.ini
   - pecl install mongodb
   - sudo apt-get install php-mongodb
