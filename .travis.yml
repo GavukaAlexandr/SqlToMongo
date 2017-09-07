@@ -22,6 +22,6 @@ before_install:
 install:
   - composer install
 
-script: vendor/bin/phpunit
+script: ./vendor/bin/phpunit
 
 
