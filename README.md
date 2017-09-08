@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/GavukaAlexandr/SqlToMongo.svg?branch=master)](https://travis-ci.org/GavukaAlexandr/SqlToMongo)
+
 DEPENDENCIES
 
 libyaml-dev
