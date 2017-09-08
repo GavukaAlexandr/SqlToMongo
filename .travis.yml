@@ -23,4 +23,6 @@ install:
   - composer install
 
 script:
+  - cd $TRAVIS_BUILD_DIR
+  - ls
   - ./vendor/bin/phpunit --configuration --debug
