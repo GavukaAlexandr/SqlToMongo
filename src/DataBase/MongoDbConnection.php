@@ -8,9 +8,7 @@
 
 namespace DataBase;
 
-use DI\Annotation\Inject;
 use MongoDB\Client;
-use MongoDB\Driver\Manager;
 
 class MongoDbConnection implements ConnectionInterface
 {
@@ -55,7 +53,7 @@ class MongoDbConnection implements ConnectionInterface
     /**
      * @return DatabaseConfiguration
      */
-    public function getConfig(): DatabaseConfiguration
+    public function getConfig()
     {
         return $this->config;
     }

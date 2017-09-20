@@ -8,7 +8,6 @@
 
 namespace DataBase;
 
-
 class DatabaseConfiguration implements DataBaseConfigurationInterface
 {
     /**
@@ -61,10 +60,8 @@ class DatabaseConfiguration implements DataBaseConfigurationInterface
         $path = __DIR__ . '/../../Config/config.yml';
         $config = yaml_parse_file($path);
 
-        $this->host = $config['config']['MongoDB']['uri'] .
-            $config['config']['MongoDB']['host'];
+        $this->host = $config['config']['MongoDB']['uri'] . $config['config']['MongoDB']['host'];
         $this->port = ':' . $config['config']['MongoDB']['port'];
-        $this->dbName = $config['config']['MongoDB']['db_name'];
         $this->username = $config['config']['MongoDB']['user'];
         $this->password = $config['config']['MongoDB']['password'];
     }
@@ -87,10 +84,5 @@ class DatabaseConfiguration implements DataBaseConfigurationInterface
     public function getPassword(): string
     {
         return $this->password;
-    }
-
-    public function getDbName(): string
-    {
-        return $this->dbName;
     }
 }

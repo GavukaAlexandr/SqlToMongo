@@ -12,4 +12,13 @@ namespace DataBase;
 interface DataBaseConfigurationInterface
 {
     public function loadConfig();
+
+    public function getHost();
+
+    public function getPort();
+
+    public function getUsername();
+
+    public function getPassword();
+
 }

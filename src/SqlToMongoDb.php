@@ -57,7 +57,9 @@ class SqlToMongoDb
 
     public function run()
     {
-        $sql = $this->getSql();
+        $dbName = $this->getDataFromCli('enter the name of the database >>> ');
+
+        $sql = $this->getDataFromCli('SQL to MongoDB >>> ');
         $parsedSql = $this->parseSql((string) $sql);
         $this->uppercaseOperators($parsedSql);
 
@@ -65,7 +67,6 @@ class SqlToMongoDb
         $settings = $this->prepareMongoQuery($parsedSql);
 
         /** execute query */
-        $dbName = $this->connection->getConfig()->getDbName();
         $collectionName = $settings['collectionName'];
 
         /** @var Client $connection */
@@ -368,19 +369,19 @@ class SqlToMongoDb
     }
 
     /**
-     * repeat greeting for input in CLI while the valid SQL hasn't input
+     * repeat greeting for input in CLI while the data hasn't input
      *
      * @return string
      */
-    private function getSql(): string
+    public function getDataFromCli($message)
     {
-        $sql = null;
-        while (empty($sql)) {
-            $sql = readline('SQL to MongoDB >>> ');
+        $data = null;
+        while (empty($data)) {
+            $data = readline($message);
         }
 
-        /** @var string $sql */
-        return $sql;
+        /** @var string $data */
+        return $data;
     }
 
     /**
