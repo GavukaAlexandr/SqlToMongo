@@ -33,7 +33,6 @@ class DatabaseConfiguration implements DataBaseConfigurationInterface
     public function __construct(
         string $host = null,
         string $port = null,
-        string $dbName = null,
         string $username = null,
         string $password = null)
     {
