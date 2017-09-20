@@ -12,4 +12,5 @@ namespace DataBase;
 interface ConnectionInterface
 {
     public function connection(DataBaseConfigurationInterface $databaseConfiguration);
+    public function getConnection();
 }
