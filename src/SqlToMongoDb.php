@@ -139,8 +139,8 @@ class SqlToMongoDb
     {
         foreach ($parsedSql as &$element) {
             if (is_array($element)) {
-                if (array_key_exists('expr_type', $element)){
-                    if ($element['expr_type'] === 'operator'){
+                if (array_key_exists('expr_type', $element)) {
+                    if ($element['expr_type'] === 'operator') {
                         $element['base_expr'] = strtoupper($element['base_expr']);
                     }
 
@@ -148,7 +148,7 @@ class SqlToMongoDb
                         $this->uppercaseOperators($element['sub_tree']);
                     }
                 } else {
-                    if (is_array($element)){
+                    if (is_array($element)) {
                         $this->uppercaseOperators($element);
                     }
                 }
@@ -170,7 +170,7 @@ class SqlToMongoDb
         $sortParams = array_column($orderBy, 'direction');
         $sortColumn = array_combine($column, $sortParams);
         array_walk($sortColumn,
-            function (&$value) {
+            function(&$value) {
                 if ($value === 'ASC') {
                     $value = 1;
                 }
@@ -200,7 +200,7 @@ class SqlToMongoDb
             $preparedDocumentFields = array_flip($documentFields);
 
             array_walk($preparedDocumentFields,
-                function (&$value) {
+                function(&$value) {
                     $value = 1;
                 });
             return $preparedDocumentFields;
@@ -242,7 +242,7 @@ class SqlToMongoDb
         if ($where['0']['base_expr'] === 'AND' && $where['1']['expr_type'] === 'bracket_expression') {
 
             /** delete operator AND from array */
-            array_splice($where,0,1);
+            array_splice($where, 0, 1);
 
             /** recursive call for sub_tree bracket_expression */
             $this->prepareConditions($where['0']['sub_tree'], $filter, true);
@@ -253,7 +253,7 @@ class SqlToMongoDb
             }
 
             /** delete sub tree of element from array */
-            array_splice($where,0,1);
+            array_splice($where, 0, 1);
         }
 
         if (count($where) <= 0) {
@@ -262,7 +262,7 @@ class SqlToMongoDb
 
         /** prepare OR */
         if ($where['0']['base_expr'] === 'OR') {
-            array_splice($where, 0,1);
+            array_splice($where, 0, 1);
             $this->prepareOr($filter, $where);
         }
 
@@ -272,12 +272,12 @@ class SqlToMongoDb
 
         /** prepare AND */
         if ($where['0']['base_expr'] === 'AND') {
-            array_splice($where, 0,1);
+            array_splice($where, 0, 1);
             $this->prepareWhereAnd($filter, $where);
         }
 
         /** if array where not empty, prepareConditions() will be called again */
-        if (count($where) > 0){
+        if (count($where) > 0) {
             $this->prepareConditions($where, $filter);
         }
 
