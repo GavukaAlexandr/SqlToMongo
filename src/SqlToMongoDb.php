@@ -190,7 +190,6 @@ class SqlToMongoDb
      */
     private function prepareSelect(array $select): array
     {
-        //todo implement *, field, field.subfield, field.*
         $documentFields = array_column($select, 'base_expr');
 
         if ($documentFields['0'] === '*') {
@@ -374,11 +373,9 @@ class SqlToMongoDb
      */
     private function getSql(): string
     {
-        for ($i = true; $i === true;) {
+        $sql = null;
+        while (empty($sql)) {
             $sql = readline('SQL to MongoDB >>> ');
-            if (!empty($sql)) {
-                break;
-            }
         }
 
         /** @var string $sql */
