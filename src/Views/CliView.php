@@ -95,7 +95,7 @@ class CliView
     private function arrayObjectsToArray(&$data)
     {
         foreach ($data as &$datum) {
-            if (is_object($datum)){
+            if (is_object($datum)) {
                 $datum = (array) $datum;
             }
             if (is_array($datum)) {
