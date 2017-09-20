@@ -247,7 +247,9 @@ class SqlToMongoDb
             $this->prepareConditions($where['0']['sub_tree'], $filter, true);
 
             /** for recursive processing of operations in brackets */
-            $bracketExpression = false;
+            if ($bracketExpression === true) {
+                unset($bracketExpression);
+            }
 
             /** delete sub tree of element from array */
             array_splice($where,0,1);
@@ -345,10 +347,13 @@ class SqlToMongoDb
     public function getOperator(string $operator)
     {
         if (array_key_exists($operator, $this->conditions)) {
-            return $this->conditions[$operator];
+            $result = $this->conditions[$operator];
         } else {
             $this->printError('Conditions operator' . "$operator" . 'not valid!');
         }
+
+        /** @var string $result */
+        return $result;
     }
 
     /**
@@ -376,6 +381,7 @@ class SqlToMongoDb
             }
         }
 
+        /** @var string $sql */
         return $sql;
     }
 
