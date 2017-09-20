@@ -11,6 +11,8 @@ $containerBuilder->useAnnotations(true);
 $containerBuilder->useAutowiring(true);
 $container = $containerBuilder->build();
 
+$cliView = $container->get('Views\CliView');
+$cliView->draw();
+
 $sqlToMongo = $container->get('SqlToMongoDb');
-$sqlToMongo->draw();
 $sqlToMongo->run();

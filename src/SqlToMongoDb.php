@@ -2,9 +2,9 @@
 
 use DataBase\ConnectionInterface;
 use DataBase\MongoDbConnection;
-use League\CLImate\CLImate;
 use MongoDB\Client;
 use PHPSQLParser\PHPSQLParser;
+use Views\CliView;
 
 class SqlToMongoDb
 {
@@ -35,34 +35,24 @@ class SqlToMongoDb
     private $parser;
 
     /**
-     * @var CLImate
+     * @var CliView
      */
-    private $cliMate;
+    private $cliView;
 
     /**
      * @param ConnectionInterface|MongoDbConnection $connection
      * @param PHPSQLParser $parser
-     * @param CLImate $cliMate
+     * @param CliView $cliView
+//     * @internal param CLImate $cliMate
      */
     public function __construct(
         ConnectionInterface $connection,
         PHPSQLParser $parser,
-        CLImate $cliMate)
+        CliView $cliView)
     {
         $this->connection = $connection;
         $this->parser = $parser;
-        $this->cliMate = $cliMate;
-    }
-
-    public function draw()
-    {
-        $this->cliMate->addArt(__DIR__ . '/../textImages');
-        $this->cliMate->clear();
-
-        $this->cliMate->magenta()->bold()->out('   Made by Alexandr Gavuka');
-        $this->cliMate->border('-');
-        $this->cliMate->green()->draw('sqltomongo');
-        $this->cliMate->border('-');
+        $this->cliView = $cliView;
     }
 
     public function run()
@@ -85,69 +75,10 @@ class SqlToMongoDb
             ->$collectionName;
         $data = $collection->find($settings['filter'], $settings['options'])->toArray();
 
-        $this->arrayObjectsToArray($data);
-        $this->prepareArrayToPrint($data);
-        $this->cliMate->table($data);
+        $this->cliView->render($data);
+
+
         $this->run();
-    }
-
-    /**
-     * Control for function arrayToString
-     *
-     * @param $data
-     */
-    private function prepareArrayToPrint(&$data)
-    {
-        foreach ($data as &$datum) {
-            if (is_array($datum)) {
-                foreach ($datum as &$item) {
-                    if (is_array($item)) {
-                        $item = $this->arrayToString($item);
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Converting multidimensional data sets to a string for output in a table
-     *
-     * @param $data
-     * @return null|string
-     */
-    private function arrayToString($data)
-    {
-        $string = null;
-        foreach ($data as $key => &$datum) {
-            if (is_array($datum)) {
-                    $string .= $key . ':{ ' . $this->arrayToString($datum) . ' } ';
-            } else {
-                if ($datum === end($data)) {
-                    $string .= $key . ':' . $datum;
-                } else {
-                    $string .= $key . ':' . $datum . ', ';
-                }
-            }
-        }
-
-        return $string;
-    }
-
-    /**
-     * array of objects to array
-     *
-     * @param $data
-     */
-    private function arrayObjectsToArray(&$data)
-    {
-        foreach ($data as &$datum) {
-            if (is_object($datum)){
-                $datum = (array) $datum;
-            }
-            if (is_array($datum)) {
-                $this->arrayObjectsToArray($datum);
-            }
-        }
     }
 
     /**
@@ -164,6 +95,7 @@ class SqlToMongoDb
     {
         $filter = [];
         $options = [];
+        $collectionName = null;
 
         if (array_key_exists('SELECT', $parsedSql)) {
             $options['projection'] = $this->prepareSelect($parsedSql['SELECT']);
@@ -232,7 +164,6 @@ class SqlToMongoDb
      */
     private function prepareSort(array $orderBy): array
     {
-        //todo replace array_walk in array_map
         $column = array_column($orderBy, 'base_expr');
         $sortParams = array_column($orderBy, 'direction');
         $sortColumn = array_combine($column, $sortParams);
@@ -427,23 +358,8 @@ class SqlToMongoDb
      */
     private function printError(string $message = 'SQL is not correct, please enter the correct SQL'): void
     {
-        $this->cliMate->error($message);
+        $this->cliView->printErrorInCli($message);
         $this->run();
-    }
-
-    /**
-     * @param string $sql
-     * @return array
-     */
-    public function parseSql(string $sql): array
-    {
-        $this->parser->addCustomFunction('SKIP');
-
-        $parsedSql = $this->parser->parse($sql);
-        if ($parsedSql === false) {
-            $this->printError();
-        }
-        return $parsedSql;
     }
 
     /**
@@ -461,5 +377,18 @@ class SqlToMongoDb
         }
 
         return $sql;
+    }
+
+    /**
+     * @param string $sql
+     * @return array
+     */
+    public function parseSql(string $sql): array
+    {
+        $parsedSql = $this->parser->parse($sql);
+        if ($parsedSql === false) {
+            $this->printError();
+        }
+        return $parsedSql;
     }
 }
