@@ -16,11 +16,9 @@ class DatabaseConfiguration implements DataBaseConfigurationInterface
     private $host;
 
     /**
-     * @var int
+     * @var string
      */
     private $port;
-
-    private $dbName;
 
     /**
      * @var string
@@ -48,7 +46,6 @@ class DatabaseConfiguration implements DataBaseConfigurationInterface
             $this->port = $port;
             $this->username = $username;
             $this->password = $password;
-            $this->dbName = $dbName;
         } else {
             $this->loadConfig();
         }
