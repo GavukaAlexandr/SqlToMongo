@@ -1,14 +1,10 @@
 config:
     MongoDB:
         uri: 'mongodb://'
-#        Local
         host: '127.0.0.1'
-#        Uncomment if you need to access the MongoDB
-#        from the container docker on the host machine
-#        host: '172.17.0.1'
         port: 27017
         db_name: SqlToMongo
-#        user:
-#        password:
-#        uriOptions: []
-#        driverOptions: []
+        user:
+        password:
+        uriOptions: []
+        driverOptions: []

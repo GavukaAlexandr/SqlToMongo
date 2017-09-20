@@ -24,3 +24,9 @@ start mongoDb service from project dir
 ````
 mongod --port 27017 --dbpath PROJECTS_DIR.../sql_to_mongo/mongoDb
 ````
+
+Change host in ./Config/config.yml if you need to access the MongoDB
+from the container docker on the host machine
+````
+host: '172.17.0.1'
+````
