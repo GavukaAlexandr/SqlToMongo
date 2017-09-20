@@ -25,7 +25,7 @@ class SqlToMongoDb
     ];
 
     /**
-     * @var Client|MongoDbConnection
+     * @var  ConnectionInterface|Client|MongoDbConnection
      */
     private $connection;
 
@@ -94,6 +94,7 @@ class SqlToMongoDb
      */
     public function prepareMongoQuery(array $parsedSql)
     {
+        $data = [];
         $filter = [];
         $options = [];
         $collectionName = null;
@@ -324,6 +325,8 @@ class SqlToMongoDb
      */
     public function getConditionsElements(array &$where): array
     {
+        $elements = [];
+
         /** @var array $condEl = conditionsElements */
         $condEl = array_splice($where, 0, 3);
         $elements['column'] = $condEl['0']['base_expr'];
