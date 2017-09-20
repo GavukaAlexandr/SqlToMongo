@@ -1,0 +1,7 @@
+dependencies:
+    before:
+        - composer install
+
+filter:
+    excluded_paths:
+        - tests/*

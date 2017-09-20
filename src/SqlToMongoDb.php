@@ -314,6 +314,8 @@ class SqlToMongoDb
 
             /** recursive call for sub_tree bracket_expression */
             $this->prepareConditions($where['0']['sub_tree'], $filter, true);
+
+            /** for recursive processing of operations in brackets */
             $bracketExpression = false;
 
             /** delete sub tree of element from array */
