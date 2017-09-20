@@ -345,6 +345,7 @@ class SqlToMongoDb
      */
     public function getOperator(string $operator)
     {
+        $result = null;
         if (array_key_exists($operator, $this->conditions)) {
             $result = $this->conditions[$operator];
         } else {
