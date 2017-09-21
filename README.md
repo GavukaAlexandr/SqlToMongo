@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/GavukaAlexandr/SqlToMongo.svg?branch=master)](https://travis-ci.org/GavukaAlexandr/SqlToMongo)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/GavukaAlexandr/SqlToMongo/badges/quality-score.png?b=dev)](https://scrutinizer-ci.com/g/GavukaAlexandr/SqlToMongo/?branch=dev)
-
+[![Code Coverage](https://scrutinizer-ci.com/g/GavukaAlexandr/SqlToMongo/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/GavukaAlexandr/SqlToMongo/?branch=master)
 DEPENDENCIES
 
 libyaml-dev
