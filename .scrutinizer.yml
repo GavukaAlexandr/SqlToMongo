@@ -3,7 +3,15 @@ build:
         override:
             - php -v
 
+checks:
+    php:
+        code_rating: true
+        duplication: true
+
 filter:
     excluded_paths:
         - tests/*
 
+tools:
+    external_code_coverage:
+        timeout: 600

@@ -21,7 +21,6 @@
     "mongodb/mongodb": "1.2.0-alpha1",
     "greenlion/php-sql-parser": "master",
     "php-di/php-di": "^5.4",
-    "doctrine/annotations": "^1.5",
     "league/climate": "^3.2"
   },
   "require-dev": {
