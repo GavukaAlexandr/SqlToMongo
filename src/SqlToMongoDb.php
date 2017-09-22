@@ -43,7 +43,6 @@ class SqlToMongoDb
      * @param ConnectionInterface|MongoDbConnection $connection
      * @param PHPSQLParser $parser
      * @param CliView $cliView
-//     * @internal param CLImate $cliMate
      */
     public function __construct(
         ConnectionInterface $connection,
@@ -86,7 +85,7 @@ class SqlToMongoDb
      * prepare SQL to array MongoDB query
      *
      * Example SQL statement
-     * SELECT firstName, lastName, age FROM SqlToMongo WHERE age > 18 AND (firstName='Alexandr' OR firstName='Inna') ORDER BY age ASC, firstName DESC, lastName ASC SKIP 3 LIMIT 5
+     * SELECT firstName, lastName, age FROM SqlToMongo WHERE age > 18 AND (firstName='name1' OR firstName='name2') ORDER BY age ASC, firstName DESC, lastName ASC SKIP 3 LIMIT 5
      * SELECT * FROM User WHERE age>20 AND( gender=female or lastName=lastName58 )
      *
      * @param array $parsedSql
@@ -135,7 +134,7 @@ class SqlToMongoDb
      *
      * @param $parsedSql
      */
-    private function uppercaseOperators(&$parsedSql)
+    private function uppercaseOperators(array &$parsedSql)
     {
         foreach ($parsedSql as &$element) {
             if (is_array($element)) {

@@ -88,7 +88,7 @@ class CliView
     }
 
     /**
-     * array of objects to array
+     * array of objects to simple multidimensional array
      *
      * @param $data
      */

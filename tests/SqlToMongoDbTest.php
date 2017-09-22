@@ -53,8 +53,8 @@ class SqlToMongoDbTest extends TestCase
     {
         $sqlToMongoDb = $this->container->get('SqlToMongoDb');
 
-        $prepareSelect = static::getMethod('prepareSelect');
-        $selectFields = $prepareSelect->invokeArgs($sqlToMongoDb, $select);
+        $privateMethodForTest = static::getMethod('prepareSelect');
+        $selectFields = $privateMethodForTest->invokeArgs($sqlToMongoDb, $select);
         $this->assertEquals($result, $selectFields);
     }
 
@@ -144,8 +144,8 @@ class SqlToMongoDbTest extends TestCase
     {
         $sqlToMongoDb = $this->container->get('SqlToMongoDb');
 
-        $prepareSelect = static::getMethod('prepareConditions');
-        $whereFields = $prepareSelect->invokeArgs($sqlToMongoDb, $where);
+        $privateMethodForTest = static::getMethod('prepareConditions');
+        $whereFields = $privateMethodForTest->invokeArgs($sqlToMongoDb, $where);
         $this->assertEquals($result, $whereFields);
     }
 
@@ -669,8 +669,8 @@ class SqlToMongoDbTest extends TestCase
     {
         $sqlToMongoDb = $this->container->get('SqlToMongoDb');
 
-        $prepareSelect = static::getMethod('prepareSort');
-        $selectFields = $prepareSelect->invokeArgs($sqlToMongoDb, $sort);
+        $privateMethodForTest = static::getMethod('prepareSort');
+        $selectFields = $privateMethodForTest->invokeArgs($sqlToMongoDb, $sort);
         $this->assertEquals($result, $selectFields);
     }
 
@@ -725,6 +725,259 @@ class SqlToMongoDbTest extends TestCase
                     'firstName' => -1,
                     'lastName' => 1,
                 ],
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider operatorsProvider
+     * @param array &$operators
+     * @param array $expected
+     */
+    public function testUpperCaseOperators(array $operators, array $expected)
+    {
+        $sqlToMongoDb = $this->container->get('SqlToMongoDb');
+
+        $privateMethodForTest = static::getMethod('uppercaseOperators');
+        $privateMethodForTest->invokeArgs($sqlToMongoDb, [&$operators]);
+        $this->assertEquals($expected, $operators);
+    }
+
+    public function operatorsProvider()
+    {
+        return [
+            'operators' => [
+
+                'operator' => array(
+                        0 => array(
+                            'expr_type' => 'colref',
+                            'base_expr' => 'age',
+                            'no_quotes' =>
+                                array(
+                                    'delim' => false,
+                                    'parts' =>
+                                        array(
+                                            0 => 'age',
+                                        ),
+                                ),
+                            'sub_tree' => false,
+                        ),
+                        1 => array(
+                            'expr_type' => 'operator',
+                            'base_expr' => '>',
+                            'sub_tree' => false,
+                        ),
+                        2 =>
+                            array(
+                                'expr_type' => 'const',
+                                'base_expr' => '20',
+                                'sub_tree' => false,
+                            ),
+                        3 =>
+                            array(
+                                'expr_type' => 'operator',
+                                'base_expr' => 'AND',
+                                'sub_tree' => false,
+                            ),
+                        4 =>
+                            array(
+                                'expr_type' => 'bracket_expression',
+                                'base_expr' => '( gender=female or lastName=lastName58 )',
+                                'sub_tree' =>
+                                    array(
+                                        0 =>
+                                            array(
+                                                'expr_type' => 'colref',
+                                                'base_expr' => 'gender',
+                                                'no_quotes' =>
+                                                    array(
+                                                        'delim' => false,
+                                                        'parts' =>
+                                                            array(
+                                                                0 => 'gender',
+                                                            ),
+                                                    ),
+                                                'sub_tree' => false,
+                                            ),
+                                        1 =>
+                                            array(
+                                                'expr_type' => 'operator',
+                                                'base_expr' => '=',
+                                                'sub_tree' => false,
+                                            ),
+                                        2 =>
+                                            array(
+                                                'expr_type' => 'colref',
+                                                'base_expr' => 'female',
+                                                'no_quotes' =>
+                                                    array(
+                                                        'delim' => false,
+                                                        'parts' =>
+                                                            array(
+                                                                0 => 'female',
+                                                            ),
+                                                    ),
+                                                'sub_tree' => false,
+                                            ),
+                                        3 =>
+                                            array(
+                                                'expr_type' => 'operator',
+                                                'base_expr' => 'or',
+                                                'sub_tree' => false,
+                                            ),
+                                        4 =>
+                                            array(
+                                                'expr_type' => 'colref',
+                                                'base_expr' => 'lastName',
+                                                'no_quotes' =>
+                                                    array(
+                                                        'delim' => false,
+                                                        'parts' =>
+                                                            array(
+                                                                0 => 'lastName',
+                                                            ),
+                                                    ),
+                                                'sub_tree' => false,
+                                            ),
+                                        5 =>
+                                            array(
+                                                'expr_type' => 'operator',
+                                                'base_expr' => '=',
+                                                'sub_tree' => false,
+                                            ),
+                                        6 =>
+                                            array(
+                                                'expr_type' => 'colref',
+                                                'base_expr' => 'lastName58',
+                                                'no_quotes' =>
+                                                    array(
+                                                        'delim' => false,
+                                                        'parts' =>
+                                                            array(
+                                                                0 => 'lastName58',
+                                                            ),
+                                                    ),
+                                                'sub_tree' => false,
+                                            ),
+                                    ),
+                            ),
+                    ),
+
+                'result' => array(
+                    0 => array(
+                        'expr_type' => 'colref',
+                        'base_expr' => 'age',
+                        'no_quotes' =>
+                            array(
+                                'delim' => false,
+                                'parts' =>
+                                    array(
+                                        0 => 'age',
+                                    ),
+                            ),
+                        'sub_tree' => false,
+                    ),
+                    1 =>
+                        array(
+                            'expr_type' => 'operator',
+                            'base_expr' => '>',
+                            'sub_tree' => false,
+                        ),
+                    2 =>
+                        array(
+                            'expr_type' => 'const',
+                            'base_expr' => '20',
+                            'sub_tree' => false,
+                        ),
+                    3 =>
+                        array(
+                            'expr_type' => 'operator',
+                            'base_expr' => 'AND',
+                            'sub_tree' => false,
+                        ),
+                    4 =>
+                        array(
+                            'expr_type' => 'bracket_expression',
+                            'base_expr' => '( gender=female or lastName=lastName58 )',
+                            'sub_tree' =>
+                                array(
+                                    0 =>
+                                        array(
+                                            'expr_type' => 'colref',
+                                            'base_expr' => 'gender',
+                                            'no_quotes' =>
+                                                array(
+                                                    'delim' => false,
+                                                    'parts' =>
+                                                        array(
+                                                            0 => 'gender',
+                                                        ),
+                                                ),
+                                            'sub_tree' => false,
+                                        ),
+                                    1 =>
+                                        array(
+                                            'expr_type' => 'operator',
+                                            'base_expr' => '=',
+                                            'sub_tree' => false,
+                                        ),
+                                    2 =>
+                                        array(
+                                            'expr_type' => 'colref',
+                                            'base_expr' => 'female',
+                                            'no_quotes' =>
+                                                array(
+                                                    'delim' => false,
+                                                    'parts' =>
+                                                        array(
+                                                            0 => 'female',
+                                                        ),
+                                                ),
+                                            'sub_tree' => false,
+                                        ),
+                                    3 =>
+                                        array(
+                                            'expr_type' => 'operator',
+                                            'base_expr' => 'OR',
+                                            'sub_tree' => false,
+                                        ),
+                                    4 =>
+                                        array(
+                                            'expr_type' => 'colref',
+                                            'base_expr' => 'lastName',
+                                            'no_quotes' =>
+                                                array(
+                                                    'delim' => false,
+                                                    'parts' =>
+                                                        array(
+                                                            0 => 'lastName',
+                                                        ),
+                                                ),
+                                            'sub_tree' => false,
+                                        ),
+                                    5 =>
+                                        array(
+                                            'expr_type' => 'operator',
+                                            'base_expr' => '=',
+                                            'sub_tree' => false,
+                                        ),
+                                    6 =>
+                                        array(
+                                            'expr_type' => 'colref',
+                                            'base_expr' => 'lastName58',
+                                            'no_quotes' =>
+                                                array(
+                                                    'delim' => false,
+                                                    'parts' =>
+                                                        array(
+                                                            0 => 'lastName58',
+                                                        ),
+                                                ),
+                                            'sub_tree' => false,
+                                        ),
+                                ),
+                        ),
+                )
             ],
         ];
     }
