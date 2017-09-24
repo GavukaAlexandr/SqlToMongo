@@ -50,6 +50,8 @@ class CliViewTest extends TestCase
 
     /**
      * @dataProvider arrayForPrepareProvider
+     * @param $data
+     * @param $expected
      */
     public function testPrepareArrayToPrint($data, $expected)
     {
