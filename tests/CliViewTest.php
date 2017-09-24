@@ -149,5 +149,4 @@ class CliViewTest extends TestCase
             ],
         ];
     }
-
 }
