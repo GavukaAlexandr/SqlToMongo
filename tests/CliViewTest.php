@@ -149,4 +149,11 @@ class CliViewTest extends TestCase
             ],
         ];
     }
+
+    public function testPrintErrorInCli()
+    {
+        $cliView = $this->container->get('Views\CliView');
+        $this->expectOutputString('');
+        $cliView->printErrorInCli('');
+    }
 }

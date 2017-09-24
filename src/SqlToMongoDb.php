@@ -89,13 +89,11 @@ class SqlToMongoDb
      */
     private function getDbName(): string
     {
-        $dbName = $this->dbName;
-        if (empty($dbName)) {
+        if (empty($this->dbName)) {
             $this->dbName = $this->getDataFromCli('enter the name of the database >>> ');
-            $dbName = $this->dbName;
         }
 
-        return $dbName;
+        return $this->dbName;
     }
 
     /**
