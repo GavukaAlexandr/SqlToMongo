@@ -226,6 +226,7 @@ class SqlToMongoDb
     /**
      * repeat greeting for input in CLI while the data hasn't input
      *
+     * @param $message
      * @return string
      */
     public function getDataFromCli($message): string
