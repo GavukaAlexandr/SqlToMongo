@@ -39,6 +39,9 @@ class SqlToMongoDb
      */
     private $cliView;
 
+    /** @var string $dbName */
+    private $dbName = null;
+
     /**
      * @param ConnectionInterface|MongoDbConnection $connection
      * @param PHPSQLParser $parser
@@ -56,7 +59,7 @@ class SqlToMongoDb
 
     public function run()
     {
-        $dbName = $this->getDataFromCli('enter the name of the database >>> ');
+        $dbName = $this->getDbName();
 
         $sql = $this->getDataFromCli('SQL to MongoDB >>> ');
         $parsedSql = $this->parseSql((string) $sql);
@@ -79,6 +82,20 @@ class SqlToMongoDb
 
 
         $this->run();
+    }
+
+    /**
+     * @return string
+     */
+    private function getDbName(): string
+    {
+        $dbName = $this->dbName;
+        if (empty($dbName)) {
+            $this->dbName = $this->getDataFromCli('enter the name of the database >>> ');
+            $dbName = $this->dbName;
+        }
+
+        return $dbName;
     }
 
     /**
