@@ -112,7 +112,7 @@ class SqlToMongoDb
             $filter = $this->prepareConditions($parsedSql['WHERE']);
         }
 
-        if (array_key_exists('ORDER BY', $parsedSql)) {
+        if (array_key_exists('ORDER', $parsedSql)) {
             $options['sort'] = $this->prepareSort($parsedSql['ORDER']);
         }
         if (array_key_exists('SKIP', $parsedSql)) {
