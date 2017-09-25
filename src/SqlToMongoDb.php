@@ -27,7 +27,7 @@ class SqlToMongoDb
     /** @var string $dbName */
     private $dbName = null;
 
-    /** @var SqlWhereToMongoCondition  */
+    /** @var SqlWhereToMongoCondition */
     private $mongoCondition;
 
     /**
@@ -51,7 +51,6 @@ class SqlToMongoDb
     public function run()
     {
         $dbName = $this->getDbName();
-
         $sql = $this->getDataFromCli('SQL to MongoDB >>> ');
         $parsedSql = $this->parseSql((string) $sql);
         $this->uppercaseOperators($parsedSql);
@@ -104,28 +103,26 @@ class SqlToMongoDb
         $options = [];
         $collectionName = null;
 
-        if (array_key_exists('SELECT', $parsedSql)) {
+        $options['projection'] = $parsedSql['SELECT'] ?? $this->prepareSelect($parsedSql['SELECT']);
+
+        $collectionName = $parsedSql['FROM']['0']['table'] ?? $this->printError('statements "FROM" missing');
+
+        if (isset($parsedSql['SELECT'])) {
             $options['projection'] = $this->prepareSelect($parsedSql['SELECT']);
         }
 
-        if (array_key_exists('FROM', $parsedSql)) {
-            $collectionName = $parsedSql['FROM']['0']['table'];
-        } else {
-            $this->printError('statements "FROM" missing');
-        }
-
-        if (array_key_exists('WHERE', $parsedSql)) {
+        if (isset($parsedSql['WHERE'])) {
             $filter = $this->mongoCondition->prepareConditions($parsedSql['WHERE']);
         }
 
-        if (array_key_exists('ORDER', $parsedSql)) {
+        if (isset($parsedSql['ORDER'])) {
             $options['sort'] = $this->prepareSort($parsedSql['ORDER']);
         }
-        if (array_key_exists('SKIP', $parsedSql)) {
-            $options['skip'] = (int) $parsedSql['SKIP']['1'];
+        if (isset($parsedSql['SKIP'])) {
+            $options['skip'] = (int)$parsedSql['SKIP']['1'];
         }
-        if (array_key_exists('LIMIT', $parsedSql)) {
-            $options['limit'] = (int) $parsedSql['LIMIT']['rowcount'];
+        if (isset($parsedSql['LIMIT'])) {
+            $options['limit'] = (int)$parsedSql['LIMIT']['rowcount'];
         }
 
         $data['filter'] = $filter;
