@@ -33,7 +33,7 @@ sudo docker build . -t sql-to-mongodb
 docker run -it sql-to-mongodb
 
 ````
-![Image](https://github.com/GavukaAlexandr/SqlToMongo/tree/master/images/Screenshot.png)
+![Image](https://github.com/GavukaAlexandr/SqlToMongo/blob/dev/images/Screenshot.png)
 
 
 
