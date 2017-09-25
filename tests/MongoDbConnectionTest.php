@@ -29,7 +29,7 @@ class MongoDbConnectionTest extends TestCase
         $containerBuilder->addDefinitions(
             __DIR__ .
             '../../Config/DependenceInjectionConfig.php');
-        $containerBuilder->useAnnotations(true);
+//        $containerBuilder->useAnnotations(true);
         $containerBuilder->useAutowiring(true);
         $container = $containerBuilder->build();
 
@@ -66,14 +66,4 @@ class MongoDbConnectionTest extends TestCase
         $this->assertNotNull($configFile['config']['MongoDB']['port'],
             "not specified PORT field in config.yml");
     }
-
-//    /**
-//     * @Inject()
-//     * @param ConnectionInterface|MongoDbConnection $connection
-//     */
-//    public function testMongoDbConnection(ConnectionInterface $connection)
-//    {
-//        $this->assertNotNull($connection);
-//        echo $connection->getConfig()->getPort();
-//    }
 }

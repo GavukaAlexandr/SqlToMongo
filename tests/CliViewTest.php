@@ -27,7 +27,7 @@ class CliViewTest extends TestCase
         $containerBuilder->addDefinitions(
             __DIR__ .
             '../../Config/DependenceInjectionConfig.php');
-        $containerBuilder->useAnnotations(true);
+//        $containerBuilder->useAnnotations(true);
         $containerBuilder->useAutowiring(true);
         $this->container = $containerBuilder->build();
         parent::__construct($name, $data, $dataName);

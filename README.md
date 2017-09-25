@@ -4,31 +4,36 @@
 
 DEPENDENCIES
 
-libyaml-dev
-yaml php extensions
-php7.1-mongodb
-````
-sudo apt-get install php-pear libyaml-dev
-sudo pecl install yaml
-You should add "extension=yaml.so" to php.ini
+php libraries:
+* mongodb/mongodb
+* greenlion/php-sql-parser
+* php-di/php-di
+* league/climate
 
-pecl install mongodb
-sudo apt-get install php7.1-mongodb
-
-````
+REQUIREMENTS
+* PHP ^7.1
+* libyaml-dev
+* yaml
+* php7.1-mongodb
+* php-mongodb
 
 LAUNCH
 
-if the service mongod is started, it must be stopped
-sudo service mongod stop
-
-start mongoDb service from project dir
+install Docker
+https://docs.docker.com/engine/installation/
 ````
-mongod --port 27017 --dbpath PROJECTS_DIR.../sql_to_mongo/mongoDb
-````
+git clone git@github.com:GavukaAlexandr/SqlToMongo.git
+cd SqlToMongo/
 
 Change host in ./Config/config.yml if you need to access the MongoDB
 from the container docker on the host machine
-````
 host: '172.17.0.1'
+
+sudo docker build . -t sql-to-mongodb
+docker run -it sql-to-mongodb
+
 ````
+![Image](https://github.com/GavukaAlexandr/SqlToMongo/tree/master/images/Screenshot.png)
+
+
+
