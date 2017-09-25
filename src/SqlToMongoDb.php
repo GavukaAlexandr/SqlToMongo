@@ -101,7 +101,6 @@ class SqlToMongoDb
         $data = [];
         $filter = [];
         $options = [];
-        $collectionName = null;
 
         $options['projection'] = $parsedSql['SELECT'] ?? $this->prepareSelect($parsedSql['SELECT']);
 
