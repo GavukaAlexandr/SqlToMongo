@@ -18,6 +18,7 @@
   },
 
   "require": {
+    "php": "^7.1",
     "mongodb/mongodb": "1.2.0-alpha1",
     "greenlion/php-sql-parser": "master",
     "php-di/php-di": "^5.4",
